@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 
 setup(
     name='elastic-django',
     version='0.1',
-    description='Python Distribution Utilities',
+    description='Elasticsearch enhancements for Django models.',
     author='Jose L. Patino Andres',
     author_email='jose.lpa@gmail.com',
     url='http://patino.me',
-    packages=['elasticsearch'],
+    packages=find_packages(),
+    install_requires=['elasticsearch']
 )
