@@ -1,12 +1,5 @@
 import logging
 
-try:
-    # Python 3.
-    from urllib.parse import urlparse
-except ImportError:
-    # Using Python 2.
-    from urlparse import urlparse
-
 from django.conf import settings
 
 from elasticsearch import Elasticsearch
@@ -17,6 +10,25 @@ from .exceptions import ElasticsearchClientConfigurationError
 
 class ElasticsearchClient(object):
     def __init__(self, hosts=None, transport_class=None, **kwargs):
+        """
+
+        :param hosts: List of dictionaries specifying the parameters of node(s)
+        to be connected to. Examples (from ``elasticsearch-py`` package:
+            - ``['localhost:9200']``
+            - ``['localhost:443', 'another_node:443']``
+            - ``['http://user:secret@localhost:9200/']``
+            - ``[
+                    {'host': 'localhost'},
+                    {
+                        'host': 'node-2', 'port': 443, 'url_prefix': 'es',
+                        'use_ssl': True
+                    },
+                ]``
+        :param transport_class: The ``elasticsearch.transport.Transport``
+        subclass to be used, if any.
+        :param kwargs: Additional parameters to be passed to ``Transport``
+        class instance.
+        """
         # Sanity checks.
         if hosts:
             try:
@@ -25,11 +37,14 @@ class ElasticsearchClient(object):
             except AssertionError as e:
                 raise ElasticsearchClientConfigurationError(e)
         else:
-            # No hosts given. Automatic configuration to default ES node.
-            auto_host = getattr(
-                settings, 'ELASTICSEARCH_HOSTS', 'http://localhost:9200')
-            auto_host = urlparse(auto_host)
-            self.hosts = [{'host': auto_host.hostname, 'port': auto_host.port}]
+            # No hosts given in client construct. Fallback to specified Django
+            # settings. Otherwise, automatic configuration to default ES node.
+            settings_hosts = getattr(
+                settings, 'ELASTICSEARCH_HOSTS', None)
+            if settings_hosts:
+                self.hosts = settings_hosts
+            else:
+                self.hosts = [{'host': 'localhost', 'port': '9200'}]
 
         if not transport_class:
             self.transport = Transport
