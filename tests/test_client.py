@@ -21,7 +21,8 @@ class ElasticsearchClientTestCase(TestCase):
         )
 
     @override_settings(ELASTICSEARCH_HOSTS=None)
-    def test_no_hosts_given_nor_configured(self):
+    @patch('elasticsearch.Elasticsearch.ping')
+    def test_no_hosts_given_nor_configured(self, mock):
         """
         Tests client behaviour when being called with no hosts specified and no
         hosts defined in Django settings. It should fallback to the ES default
@@ -29,6 +30,9 @@ class ElasticsearchClientTestCase(TestCase):
         """
         # Delete setting.
         del settings.ELASTICSEARCH_HOSTS
+
+        # Mock ES backend ping response to pass test.
+        mock.return_value = True
 
         client = ElasticsearchClient()
         self.assertEqual(client.hosts, [{'host': 'localhost', 'port': '9200'}])
