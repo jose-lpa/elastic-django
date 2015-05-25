@@ -1,2 +1,5 @@
 *.pyc
 *.swp
+
+.eggs/
+elastic_django.egg-info/
