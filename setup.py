@@ -12,5 +12,6 @@ setup(
     url='http://patino.me',
     packages=find_packages(),
     install_requires=['elasticsearch', 'Django>=1.8'],
-    test_suite='tests'
+    test_suite='tests',
+    tests_require=['mock']
 )
