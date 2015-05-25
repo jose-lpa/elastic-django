@@ -11,5 +11,6 @@ setup(
     author_email='jose.lpa@gmail.com',
     url='http://patino.me',
     packages=find_packages(),
-    install_requires=['elasticsearch']
+    install_requires=['elasticsearch', 'Django>=1.8'],
+    test_suite='tests'
 )
