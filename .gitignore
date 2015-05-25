@@ -3,3 +3,9 @@
 
 .eggs/
 elastic_django.egg-info/
+
+# Testing and code coverage.
+.cache/
+.coverage
+coverage.xml
+junit.xml
