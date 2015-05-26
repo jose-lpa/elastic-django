@@ -11,9 +11,10 @@ from .exceptions import ElasticsearchClientConfigurationError
 class ElasticsearchClient(object):
     def __init__(self, hosts=None, transport_class=None, **kwargs):
         """
+        Initialization of the Elasticsearch client.
 
         :param hosts: List of dictionaries specifying the parameters of node(s)
-        to be connected to. Examples (from ``elasticsearch-py`` package:
+        to be connected to. Examples (from ``elasticsearch-py`` package):
             - ``['localhost:9200']``
             - ``['localhost:443', 'another_node:443']``
             - ``['http://user:secret@localhost:9200/']``
@@ -60,3 +61,7 @@ class ElasticsearchClient(object):
             logging.debug(
                 "Connection established with Elasticsearch backend(s) in "
                 "'{0}'".format(self.connection.transport.hosts))
+
+        # Define the ES index name to be used everywhere.
+        self.index_name = getattr(
+            settings, 'ELASTICSEARCH_INDEX_NAME', 'elastic-django')
