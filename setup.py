@@ -31,7 +31,7 @@ setup(
     author='Jose L. Patino Andres',
     author_email='jose.lpa@gmail.com',
     url='http://patino.me',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests*']),
     install_requires=['elasticsearch', 'Django>=1.8'],
     test_suite='tests',
     tests_require=[
