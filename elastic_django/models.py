@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import six
+from django.utils.encoding import force_str
 
 from .manager import ElasticManager
 
@@ -42,6 +44,13 @@ class ElasticModel(models.Model):
 
     class Meta:
         abstract = True
+
+    def __repr__(self):
+        try:
+            u = six.text_type(self)
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            u = '[Bad Unicode data]'
+        return force_str('<{0}: {1} w/ES>'.format(self.__class__.__name__, u))
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
