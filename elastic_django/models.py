@@ -19,24 +19,38 @@ class ElasticModelBase(models.base.ModelBase):
         Elasticsearch ``Meta`` attributes, if any.
         """
         elastic_meta = {}
+
         if 'Meta' in attrs:
-            # TODO: Clean this properly:
-            # 1) Check consistency of objects - the `index_name` must be a string, the `elastic_*` must be tuples of strings...
-            # 2) Raise `ImproperlyConfigured` errors when needed.
             if hasattr(attrs['Meta'], 'index_name'):
-                elastic_meta['index_name'] = attrs['Meta'].index_name
+                index_name = attrs['Meta'].index_name
+                if not isinstance(index_name, six.string_types):
+                    raise ImproperlyConfigured(
+                        '`index_name` attribute must be a string.')
+
+                elastic_meta['index_name'] = index_name
                 delattr(attrs['Meta'], 'index_name')
+
             if hasattr(attrs['Meta'], 'elastic_fields'):
-                # Sanity check.
                 if hasattr(attrs['Meta'], 'elastic_exclude'):
+                    # `elastic_fields` and `elastic_exclude` are exclusive.
                     raise ImproperlyConfigured(
                         '`elastic_fields` and `elastic_exclude` cannot be '
                         'defined together.')
 
-                elastic_meta['elastic_fields'] = attrs['Meta'].elastic_fields
+                elastic_fields = attrs['Meta'].elastic_fields
+                if not isinstance(elastic_fields, (tuple, list)):
+                    raise ImproperlyConfigured(
+                        '`elastic_fields` must be a tuple or a list.')
+
+                elastic_meta['elastic_fields'] = elastic_fields
                 delattr(attrs['Meta'], 'elastic_fields')
-            if hasattr(attrs['Meta'], 'elastic_exclude'):
-                elastic_meta['elastic_exclude'] = attrs['Meta'].elastic_exclude
+            elif hasattr(attrs['Meta'], 'elastic_exclude'):
+                elastic_exclude = attrs['Meta'].elastic_exclude
+                if not isinstance(elastic_exclude, (tuple, list)):
+                    raise ImproperlyConfigured(
+                        '`elastic_exclude` must be a tuple or a list.')
+
+                elastic_meta['elastic_exclude'] = elastic_exclude
                 delattr(attrs['Meta'], 'elastic_exclude')
 
         new_class = super(ElasticModelBase, mcs).__new__(
@@ -85,7 +99,9 @@ class ElasticModel(models.Model):
         """
         super(ElasticModel, self).save(*args, **kwargs)
 
-        # self.elastic.client.connection.index()
+        if not getattr(settings, 'ELASTICSEARCH_AUTO_INDEX', True):
+            pass
+            # self.elastic.client.connection.index()
 
     def elastic_serializer(self):
         """
@@ -98,6 +114,9 @@ class ElasticModel(models.Model):
 
         :return: A JSON dataset representing this model instance serialized.
         """
-        pass
-        # if hasattr(self._meta, 'elastic_fields'):
-
+        if hasattr(self._meta, 'elastic_fields'):
+            # TODO: Serialize only custom fields here (plus the mandatory object PK).
+            pass
+        elif hasattr(self._meta, 'elastic_exclude'):
+            # TODO: Serialize all the fields of the model here, except those marked as to be excluded.
+            pass
