@@ -36,7 +36,7 @@ setup(
     test_suite='tests',
     tests_require=[
         'mock',
-        'pytest',
+        'pytest-django',
         'pytest-cov',
         'pytest-pep8',
     ],
