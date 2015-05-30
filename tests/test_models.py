@@ -102,3 +102,45 @@ class ElasticModelBaseTestCase(TestCase):
                 })
             }
         )
+
+    def test_meta_wrong_field_name_elastic_exclude(self):
+        """
+        Tests that the fields specified in ``elastic_exclude`` ``Meta`` class
+        attributes exists in the defined model.
+        """
+        self.assertRaisesMessage(
+            ImproperlyConfigured,
+            "The field 'foo' specified in ES Meta attributes is "
+            "not defined in model 'ElasticModel'",
+            type,
+            'ElasticModel', (ElasticModel,), {
+                '__module__': 'tests.test_models',
+                'field_1': models.IntegerField(),
+                'field_2': models.IntegerField(),
+                'Meta': type('ElasticModelBase', (ElasticModelBase,), {
+                    '__module__': 'tests.test_models',
+                    'elastic_exclude': ('foo',)
+                })
+            }
+        )
+
+    def test_meta_wrong_field_name_elastic_fields(self):
+        """
+        Tests that the fields specified in ``elastic_fields`` ``Meta`` class
+        attributes exists in the defined model.
+        """
+        self.assertRaisesMessage(
+            ImproperlyConfigured,
+            "The field 'foo' specified in ES Meta attributes is "
+            "not defined in model 'ElasticModel'",
+            type,
+            'ElasticModel', (ElasticModel,), {
+                '__module__': 'tests.test_models',
+                'field_1': models.IntegerField(),
+                'field_2': models.IntegerField(),
+                'Meta': type('ElasticModelBase', (ElasticModelBase,), {
+                    '__module__': 'tests.test_models',
+                    'elastic_fields': ('foo',)
+                })
+            }
+        )
