@@ -53,6 +53,15 @@ class ElasticModelBase(models.base.ModelBase):
                 elastic_meta['elastic_exclude'] = elastic_exclude
                 delattr(attrs['Meta'], 'elastic_exclude')
 
+            fields = elastic_meta.get('elastic_fields') or elastic_meta.get(
+                'elastic_exclude') or []
+            for field in fields:
+                if field not in attrs or not isinstance(
+                        attrs[field], models.fields.Field):
+                    raise ImproperlyConfigured(
+                        "The field '{0}' specified in ES Meta attributes is "
+                        "not defined in model '{1}'".format(field, name))
+
         new_class = super(ElasticModelBase, mcs).__new__(
             mcs, name, bases, attrs)
 
@@ -112,7 +121,7 @@ class ElasticModel(models.Model):
         any definitions that may affect the number of fields to be serialized.
         If there are no restrictions, it will serialize all fields.
 
-        :return: A JSON dataset representing this model instance serialized.
+        :return: A JSON data set representing this model instance serialized.
         """
         if hasattr(self._meta, 'elastic_fields'):
             # TODO: Serialize only custom fields here (plus the mandatory object PK).
