@@ -107,8 +107,8 @@ class ElasticModel(six.with_metaclass(ElasticModelBase, models.Model)):
         """
         super(ElasticModel, self).save(*args, **kwargs)
 
-        # if getattr(settings, 'ELASTICSEARCH_AUTO_INDEX', True):
-        #     self.elastic.index_object(self)
+        if getattr(settings, 'ELASTICSEARCH_AUTO_INDEX', True):
+            self.elastic.index_object(self)
 
     def elastic_serializer(self):
         """
