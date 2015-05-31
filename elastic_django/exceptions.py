@@ -7,3 +7,8 @@ class ElasticsearchClientConfigurationError(Exception):
         if self.value:
             return repr('Invalid client configuration: {0}'.format(self.value))
         return 'Invalid client configuration'
+
+
+class ElasticsearchClientNotConnectedError(Exception):
+    def __str__(self):
+        return 'Elasticsearch client is not connected.'
