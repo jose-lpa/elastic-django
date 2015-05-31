@@ -78,14 +78,11 @@ class ElasticModelBase(models.base.ModelBase):
         return new_class
 
 
-class ElasticModel(models.Model):
+class ElasticModel(six.with_metaclass(ElasticModelBase, models.Model)):
     """
     Subclass of Django ``models.Model`` extended with Elasticsearch
     capabilities.
     """
-    # Engage `ElasticModelBase` to extend the base Django `Model.Meta` class.
-    __metaclass__ = ElasticModelBase
-
     # Custom ES model manager.
     elastic = ElasticManager()
 
@@ -110,9 +107,8 @@ class ElasticModel(models.Model):
         """
         super(ElasticModel, self).save(*args, **kwargs)
 
-        if not getattr(settings, 'ELASTICSEARCH_AUTO_INDEX', True):
-            pass
-            # self.elastic.client.connection.index()
+        # if getattr(settings, 'ELASTICSEARCH_AUTO_INDEX', True):
+        #     self.elastic.index_object(self)
 
     def elastic_serializer(self):
         """
