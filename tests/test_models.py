@@ -5,7 +5,7 @@ from django.test import TestCase
 import pytest
 
 from elastic_django.models import ElasticModel, ElasticModelBase
-from .models import Book
+from .models import Book, BookExclusion, BookSelection
 
 
 @pytest.mark.django_db
@@ -18,11 +18,71 @@ class ElasticModelTestCase(TestCase):
             isbn='9780134034287', publication_year=2015,
             description='59 Specific Ways to Write Better Python.')
 
-    def test_meta_index_name_must_string(self):
+        # `Book` model with only `title` and `author` fields selected to index.
+        self.book_selection = BookSelection.objects.create(
+            title='Effective Java', author='Joshua Bloch',
+            isbn='9780321356680', publication_year=2009,
+            description='The best Java book yet written.... Really great; very'
+                        ' readable and eminently useful.')
+
+        # `Book` model with `title` and `author` fields selected to be excluded
+        # from index.
+        self.book_exclusion = BookExclusion.objects.create(
+            title='Effective C++', author='Scott Meyers',
+            isbn='9780321334879', publication_year=2008,
+            description='55 Specific Ways to Improve Your Programs.')
+
+    def test_elastic_serializer_fields_selection(self):
         """
-        Test this thingy to check that Django database is enabled.
+        Tests the ``elastic_serializer`` method when the ``ElasticModel`` is
+        defined to index only a subset of its fields.
         """
-        self.assertEqual(self.book.title, 'Effective Python')
+        data = self.book_selection.elastic_serializer()
+
+        self.assertDictEqual(
+            data,
+            {
+                'title': self.book_selection.title,
+                'author': self.book_selection.author,
+                'pk': self.book_selection.pk
+            }
+        )
+
+    def test_elastic_serializer_fields_exclusion(self):
+        """
+        Tests the ``elastic_serializer`` method when the ``ElasticModel`` is
+        defined to exclude a subset of its fields.
+        """
+        data = self.book_exclusion.elastic_serializer()
+
+        self.assertDictEqual(
+            data,
+            {
+                'isbn': self.book_exclusion.isbn,
+                'publication_year': self.book_exclusion.publication_year,
+                'description': self.book_exclusion.description,
+                'pk': self.book_exclusion.pk
+            }
+        )
+
+    def test_elastic_serializer_all_fields(self):
+        """
+        Tests the ``elastic_serializer`` method when model fields are not
+        defined to be indexed or excluded.
+        """
+        data = self.book.elastic_serializer()
+
+        self.assertDictEqual(
+            data,
+            {
+                'title': self.book.title,
+                'author': self.book.author,
+                'isbn': self.book.isbn,
+                'publication_year': self.book.publication_year,
+                'description': self.book.description,
+                'pk': self.book.pk
+            }
+        )
 
 
 class ElasticModelBaseTestCase(TestCase):
