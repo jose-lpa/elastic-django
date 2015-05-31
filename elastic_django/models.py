@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.core import serializers
 from django.core.exceptions import ImproperlyConfigured
@@ -121,11 +123,27 @@ class ElasticModel(models.Model):
         any definitions that may affect the number of fields to be serialized.
         If there are no restrictions, it will serialize all fields.
 
-        :return: A JSON data set representing this model instance serialized.
+        :return: A JSON-serializable data set representing this model instance
+        serialized.
         """
-        if hasattr(self._meta, 'elastic_fields'):
-            # TODO: Serialize only custom fields here (plus the mandatory object PK).
-            pass
-        elif hasattr(self._meta, 'elastic_exclude'):
-            # TODO: Serialize all the fields of the model here, except those marked as to be excluded.
-            pass
+        if self._meta.elastic_fields:
+            # Serialize only custom fields here (plus the mandatory object PK).
+            data = serializers.serialize(
+                'json', [self], fields=self._meta.elastic_fields)
+        elif self._meta.elastic_exclude:
+            # Serialize all the fields of the model here, except those marked
+            # as to be excluded.
+            fields = []
+            for field in self._meta.fields:
+                if field.name not in self._meta.elastic_exclude:
+                    fields.append(field.name)
+            data = serializers.serialize('json', [self], fields=fields)
+        else:
+            # Serialize all fields.
+            data = serializers.serialize('json', [self])
+
+        data = json.loads(data)
+        doc = data[0]['fields']
+        doc.update({'pk': data[0]['pk']})
+
+        return doc
