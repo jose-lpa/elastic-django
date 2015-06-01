@@ -1,11 +1,13 @@
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.test import TestCase
+from django.test.utils import override_settings
 
 import pytest
 from mock import patch
 
 from elastic_django.models import ElasticModel, ElasticModelBase
+from elastic_django.exceptions import InvalidElasticsearchOperationError
 from .models import Book, BookExclusion, BookSelection
 
 
@@ -88,6 +90,69 @@ class ElasticModelTestCase(TestCase):
                 'pk': self.book.pk
             }
         )
+
+    @patch('elastic_django.manager.ElasticManager.index_object')
+    def test_auto_indexing_enabled(self, mock):
+        """
+        Tests that Elasticsearch indexing is triggered automatically when
+        saving a new model, if selected in settings.
+        """
+        Book.objects.create(
+            title='21st Century C', author='Ben Klemens', isbn='9781491903896',
+            publication_year='2014', description='C Tips from the New School'
+        )
+
+        self.assertTrue(mock.called)
+
+    @override_settings(ELASTICSEARCH_AUTO_INDEX=False)
+    @patch('elastic_django.manager.ElasticManager.index_object')
+    def test_auto_indexing_disabled(self, mock):
+        """
+        Tests that Elasticsearch indexing is NOT triggered when saving a new
+        model, if settings are configured to avoid doing so.
+        """
+        Book.objects.create(
+            title='21st Century C', author='Ben Klemens', isbn='9781491903896',
+            publication_year='2014', description='C Tips from the New School'
+        )
+
+        self.assertFalse(mock.called)
+
+    def test_index_delete_no_pk_error(self):
+        """
+        Tests error raised on trying to execute ``index_delete`` method when
+        the model is not saved to the DB (doesn't have a ``pk``).
+        """
+        book = Book(
+            title='21st Century C', author='Ben Klemens', isbn='9781491903896',
+            publication_year='2014', description='C Tips from the New School'
+        )
+
+        self.assertRaisesMessage(
+            InvalidElasticsearchOperationError,
+            'Invalid ES backend operation: The model must be stored in DB '
+            'backend prior to be deleted in Elasticsearch.',
+            book.index_delete
+        )
+
+    @patch('elastic_django.manager.ElasticManager.remove_object')
+    def test_auto_deleting_enabled(self, mock):
+        """
+        Tests that Elasticsearch deletion is triggered automatically when
+        deleting a model, if selected in settings.
+        """
+        self.book.delete()
+        self.assertTrue(mock.called)
+
+    @override_settings(ELASTICSEARCH_AUTO_INDEX=False)
+    @patch('elastic_django.manager.ElasticManager.remove_object')
+    def test_auto_deleting_disabled(self, mock):
+        """
+        Tests that Elasticsearch deletion is NOT triggered automatically when
+        deleting a model, if settings are configured to avoid doing so.
+        """
+        self.book.delete()
+        self.assertFalse(mock.called)
 
 
 class ElasticModelBaseTestCase(TestCase):
