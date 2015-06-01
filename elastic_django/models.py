@@ -7,6 +7,7 @@ from django.db import models
 from django.utils import six
 from django.utils.encoding import force_str
 
+from .exceptions import InvalidElasticsearchOperationError
 from .manager import ElasticManager
 
 
@@ -108,7 +109,35 @@ class ElasticModel(six.with_metaclass(ElasticModelBase, models.Model)):
         super(ElasticModel, self).save(*args, **kwargs)
 
         if getattr(settings, 'ELASTICSEARCH_AUTO_INDEX', True):
-            self.elastic.index_object(self)
+            self.index()
+
+    def delete(self, using=None):
+        """
+        Overrides base Django ``models.Model.delete`` method to implemente
+        automatic Elasticsearch deletion.
+        """
+        if getattr(settings, 'ELASTICSEARCH_AUTO_INDEX', True):
+            self.index_delete()
+
+        super(ElasticModel, self).delete(using)
+
+    def index(self):
+        """
+        Index the object in Elasticsearch backend.
+        """
+        self.elastic.index_object(self)
+
+    def index_delete(self):
+        """
+        Remove the object from the Elasticsearch index. Note that this won't
+        affect the Django DB backend object at all.
+        """
+        if not self.pk:
+            raise InvalidElasticsearchOperationError(
+                'The model must be stored in DB backend prior to be deleted in'
+                ' Elasticsearch.')
+
+        self.elastic.remove_object(self.pk)
 
     def elastic_serializer(self):
         """
