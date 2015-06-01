@@ -137,7 +137,7 @@ class ElasticModel(six.with_metaclass(ElasticModelBase, models.Model)):
                 'The model must be stored in DB backend prior to be deleted in'
                 ' Elasticsearch.')
 
-        self.elastic.remove_object(self.pk)
+        self.elastic.remove_object(self)
 
     def elastic_serializer(self):
         """
