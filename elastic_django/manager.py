@@ -28,16 +28,14 @@ class ElasticManager(object):
         Checks if the manager is able to perform operations against an ES
         connected backend.
         """
-        return self._client is not None
+        if not self._client:
+            raise ElasticsearchClientNotConnectedError()
 
     def index_object(self, obj):
         """
         Indexes a single Django ``models.Model`` object in the ES backend.
         """
-        import pdb
-        pdb.set_trace()
-        if not self.is_connected():
-            raise ElasticsearchClientNotConnectedError()
+        self.is_connected()
 
         index_name = obj._meta.index_name or self._client.index_name
 
@@ -56,8 +54,7 @@ class ElasticManager(object):
         """
         Removes an object from the ES backend index.
         """
-        if not self.is_connected():
-            raise ElasticsearchClientNotConnectedError()
+        self.is_connected()
 
         index_name = obj._meta.index_name or self._client.index_name
 
@@ -75,13 +72,37 @@ class ElasticManager(object):
         """
         Retrieves a specific object via its ``Model.pk`` from the ES backend.
         """
-        if not self.is_connected():
-            raise ElasticsearchClientNotConnectedError()
-
-        index_name = obj._meta.index_name or self._client.index_name
+        self.is_connected()
 
         return self._connection.get(
-            index=index_name,
+            index=obj._meta.index_name or self._client.index_name,
             doc_type=obj.__class__.__name__,
             id=obj.pk
         )
+
+    def search_match(self, index=None, **fields):
+        """
+        Performs a 'term' query in Elasticsearch backend for the given string.
+        """
+        self._connection.search(
+            index=index or self._client.index_name,
+            body={
+                'query': {
+                    'bool': {
+                        'should': [
+                            {
+                                'match': {
+                                    key: fields[key]
+                                }
+                            } for key in fields.keys()
+                        ]
+                    }
+                }
+            }
+        )
+
+    def search_prefix(self):
+        """
+        Performs a 'term' query in Elasticsearch backend for the given string.
+        """
+        raise NotImplementedError('This search mode is not implemented.')
