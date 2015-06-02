@@ -3,7 +3,7 @@
 [Django](https://www.djangoproject.com/) models enhanced with [Elasticsearch](https://www.elastic.co/products/elasticsearch)
 capabilities.
 
-[build status](https://travis-ci.org/jose-lpa/elastic-django.svg?branch=master)
+[![Build Status](https://travis-ci.org/jose-lpa/elastic-django.svg?branch=master)](https://travis-ci.org/jose-lpa/elastic-django)
 
 ### Quick start
 1. Install the elastic-django package.
