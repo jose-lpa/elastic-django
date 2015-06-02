@@ -95,7 +95,7 @@ class ElasticModel(six.with_metaclass(ElasticModelBase, models.Model)):
             u = six.text_type(self)
         except (UnicodeEncodeError, UnicodeDecodeError):
             u = '[Bad Unicode data]'
-        return force_str('<{0}: {1} w/ES>'.format(self.__class__.__name__, u))
+        return force_str('<{0}: {1} - w/ES>'.format(self.__class__.__name__, u))
 
     def save(self, *args, **kwargs):
         """

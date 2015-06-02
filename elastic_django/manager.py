@@ -34,6 +34,8 @@ class ElasticManager(object):
         """
         Indexes a single Django ``models.Model`` object in the ES backend.
         """
+        import pdb
+        pdb.set_trace()
         if not self.is_connected():
             raise ElasticsearchClientNotConnectedError()
 
@@ -68,3 +70,18 @@ class ElasticManager(object):
         if settings.DEBUG:
             logging.debug("Deleted object '{0}' with PK '{1}' in '{2}'".format(
                 obj.__class__.__name__, obj.pk, index_name))
+
+    def get_object(self, obj):
+        """
+        Retrieves a specific object via its ``Model.pk`` from the ES backend.
+        """
+        if not self.is_connected():
+            raise ElasticsearchClientNotConnectedError()
+
+        index_name = obj._meta.index_name or self._client.index_name
+
+        return self._connection.get(
+            index=index_name,
+            doc_type=obj.__class__.__name__,
+            id=obj.pk
+        )
