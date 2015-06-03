@@ -4,6 +4,7 @@
 capabilities.
 
 [![Build Status](https://travis-ci.org/jose-lpa/elastic-django.svg?branch=master)](https://travis-ci.org/jose-lpa/elastic-django)
+[![Coverage Status](https://coveralls.io/repos/jose-lpa/elastic-django/badge.svg)](https://coveralls.io/r/jose-lpa/elastic-django)
 
 ### Quick start
 1. Install the elastic-django package.
