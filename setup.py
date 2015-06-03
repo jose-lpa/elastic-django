@@ -35,7 +35,6 @@ setup(
     install_requires=['elasticsearch', 'Django>=1.8'],
     test_suite='tests',
     tests_require=[
-        'coveralls',
         'mock',
         'pytest-django',
         'pytest-cov',
