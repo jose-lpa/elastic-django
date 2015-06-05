@@ -2,8 +2,8 @@ import logging
 
 from django.conf import settings
 
-from elasticsearch import Elasticsearch
 from elasticsearch.transport import Transport
+from elasticsearch_dsl import connections
 
 from .exceptions import ElasticsearchClientConfigurationError
 
@@ -50,8 +50,14 @@ class ElasticsearchClient(object):
         if not transport_class:
             self.transport = Transport
 
-        self.connection = Elasticsearch(
+        self.connection = connections.connections.create_connection(
             hosts=self.hosts, transport_class=self.transport, **kwargs)
+
+        # Define the ES index name to be used everywhere.
+        self.index_name = getattr(
+            settings, 'ELASTICSEARCH_INDEX_NAME', 'elastic-django')
+
+        self.connection.indices.create(index=self.index_name, ignore=400)
 
         # Check connection before continuing.
         if not self.connection.ping():
@@ -61,7 +67,3 @@ class ElasticsearchClient(object):
             logging.debug(
                 "Connection established with Elasticsearch backend(s) in "
                 "'{0}'".format(self.connection.transport.hosts))
-
-        # Define the ES index name to be used everywhere.
-        self.index_name = getattr(
-            settings, 'ELASTICSEARCH_INDEX_NAME', 'elastic-django')
