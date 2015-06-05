@@ -40,13 +40,14 @@ class ElasticsearchClientTestCase(TestCase):
     @override_settings(
         ELASTICSEARCH_HOSTS=[{'host': '127.0.0.1', 'port': '443'}])
     @patch('elasticsearch.Elasticsearch.ping')
-    def test_no_hosts_given_and_configured(self, mock):
+    @patch('elasticsearch.client.IndicesClient.create')
+    def test_no_hosts_given_and_configured(self, mock_index, mock_ping):
         """
         Tests client behaviour when being called with no hosts specified and
         hosts already defined in Django settings.
         """
-        # Mock ES backend ping response to pass test.
-        mock.return_value = True
+        # Mock ES backend responses to pass test.
+        mock_ping.return_value = True
 
         client = ElasticsearchClient()
 
