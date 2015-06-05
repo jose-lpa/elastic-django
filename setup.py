@@ -32,7 +32,11 @@ setup(
     author_email='jose.lpa@gmail.com',
     url='http://patino.me',
     packages=find_packages(exclude=['tests*']),
-    install_requires=['elasticsearch', 'Django>=1.8'],
+    install_requires=[
+        'elasticsearch',
+        'elasticsearch-dsl',
+        'Django>=1.8'
+    ],
     test_suite='tests',
     tests_require=[
         'mock',
